@@ -34,7 +34,7 @@ class SimpleDisposable: Disposable {
 	}
 	
 	func dispose() {
-		_disposed.replace(true)
+		_disposed.value = true
 	}
 }
 
@@ -42,7 +42,7 @@ class SimpleDisposable: Disposable {
 /// A disposable that will run an action upon disposal.
 class ActionDisposable: Disposable {
 	var _action: Atomic<(() -> ())?>
-	
+
 	var disposed: Bool {
 		get {
 			return _action == nil
@@ -53,9 +53,10 @@ class ActionDisposable: Disposable {
 	init(action: () -> ()) {
 		_action = Atomic(action)
 	}
-	
+
 	func dispose() {
-		_action?()
+		let action = _action.swap(nil)
+		action?()
 	}
 }
 
@@ -82,7 +83,7 @@ class CompositeDisposable: Disposable {
 	}
 	
 	func dispose() {
-		if let ds = _disposables.replace(nil) {
+		if let ds = _disposables.swap(nil) {
 			for d in ds {
 				d.dispose()
 			}

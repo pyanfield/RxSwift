@@ -14,7 +14,6 @@ import Foundation
 /// An atomic variable.
 @final class Atomic<T> {
 	let _lock = SpinLock()
-	
 	let _box: MutableBox<T>
 	
     // 获取和设置变量的值，并已经加锁
@@ -39,25 +38,35 @@ import Foundation
 		_box = MutableBox(value)
 	}
 	
-    // 替换变量的内容
+    // 交换变量的内容,返回原值
 	/// Atomically replaces the contents of the variable.
 	///
-	/// Returns the new value.
-	func replace(newValue: T) -> T {
-		return modify { oldValue in newValue }
+	/// Returns the old value.
+	func swap(newValue: T) -> T {
+		return modify { _ in newValue }
 	}
 	
-    // 修改变量的值
+    // 修改变量的值,返回原值
 	/// Atomically modifies the variable.
 	///
-	/// Returns the new value.
+	/// Returns the old value.
 	func modify(action: T -> T) -> T {
+		let (oldValue, _) = modify { oldValue in (action(oldValue), nil) }
+		return oldValue
+	}
+	
+    // 原子性的修改变量值，返回原始值，加上任意用户定义的数据
+	/// Atomically modifies the variable.
+	///
+	/// Returns the old value, plus arbitrary user-defined data.
+	func modify<U>(action: T -> (T, U)) -> (T, U) {
 		_lock.lock()
-		let newValue = action(_box)
+		let oldValue: T = _box
+		let (newValue, data) = action(_box)
 		_box.value = newValue
 		_lock.unlock()
 		
-		return newValue
+		return (oldValue, data)
 	}
 	
 	/// Atomically performs an arbitrary action using the current value of the

@@ -92,6 +92,22 @@ class AsyncSequence<T>: Stream<T>, Sequence {
 	func generate() -> GeneratorType {
 		return self._generate()
 	}
+
+	/// Injects side effects into the generation of each event.
+	func doEvent(action: Event<T> -> ()) -> AsyncSequence<T> {
+		return AsyncSequence {
+			var selfGenerator = self.generate()
+
+			return GeneratorOf {
+				let p = selfGenerator.next()
+
+				return p?.then { event in
+					action(event)
+					return Promise { event }
+				}
+			}
+		}
+	}
 	
     // 置空
 	override class func empty() -> AsyncSequence<T> {
