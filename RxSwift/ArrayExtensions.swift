@@ -8,6 +8,7 @@
 
 import Foundation
 
+// 将给定的对象从数组中移除
 /// Removes all occurrences of the given object from the array.
 func removeObjectIdenticalTo<T: AnyObject>(value: T, #fromArray: T[]) -> T[] {
 	return fromArray.filter({

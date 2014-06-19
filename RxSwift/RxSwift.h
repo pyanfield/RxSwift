@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+// 注意这里声明了一些全局的变量和常量， 在这里 FOUNDATION_EXPORT 比 extern 要更具兼容性。
 //! Project version number for RxSwift.
 FOUNDATION_EXPORT double RxSwiftVersionNumber;
 

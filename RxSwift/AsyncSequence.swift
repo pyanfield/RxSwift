@@ -68,15 +68,22 @@ struct _FlattenScanGenerator<S, T, U>: Generator {
 	}
 }
 
+// 基于 pull 的消费驱动的流值
 /// A consumer-driven (pull-based) stream of values.
 class AsyncSequence<T>: Stream<T>, Sequence {
+    
+    // 类型的别名声明，声明 GeneratorType 
+    // func generate() -> GeneratorOf<String>
 	typealias GeneratorType = GeneratorOf<Promise<Event<T>>>
 
 	let _generate: () -> GeneratorType
 	init(_ generate: () -> GeneratorType) {
 		self._generate = generate
 	}
-
+    
+    // 实例化一个能够立即返回 Promise<Event<T>> 的生成器对象，代表了 stream 中的未来事件
+    // 只有生成的 promise 真正的解决的时候，才会开始工作
+    // 每一个 promise 可能以任意的顺序被评估， 甚至全部跳过
 	/// Instantiates a generator that will instantly return Promise<Event<T>>
 	/// objects, representing future events in the stream.
 	///
@@ -86,6 +93,7 @@ class AsyncSequence<T>: Stream<T>, Sequence {
 		return self._generate()
 	}
 	
+    // 置空
 	override class func empty() -> AsyncSequence<T> {
 		return AsyncSequence {
 			return GeneratorOf {
@@ -102,7 +110,8 @@ class AsyncSequence<T>: Stream<T>, Sequence {
 			]).generate()
 		}
 	}
-
+    
+    // 错误
 	override class func error(error: NSError) -> AsyncSequence<T> {
 		return AsyncSequence {
 			return GeneratorOf {
@@ -118,6 +127,7 @@ class AsyncSequence<T>: Stream<T>, Sequence {
 		}
 	}
 
+    // 连接
 	override func concat(stream: Stream<T>) -> AsyncSequence<T> {
 		return AsyncSequence {
 			var selfGenerator = self.generate()

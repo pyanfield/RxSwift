@@ -8,16 +8,20 @@
 
 import Foundation
 
+// class_protocol 该特性用于修饰一个协议表明该协议只能被类类型采用
+// 代表一个对象能够被废弃，通常是用于释放一些资源或者取消一些工作。
 /// Represents an object that can be “disposed,” usually associated with freeing
 /// resources or canceling work.
 @class_protocol
 protocol Disposable {
+    // 表示是否已经被废弃了。
 	/// Whether this disposable has been disposed already.
 	var disposed: Bool { get }
 
 	func dispose()
 }
 
+// 一个简单地 disposable 处理，只是实现了简单地 'disposed' 变量的值的翻转，没有进行其他工作
 /// A disposable that only flips `disposed` upon disposal, and performs no other
 /// work.
 class SimpleDisposable: Disposable {
@@ -34,6 +38,7 @@ class SimpleDisposable: Disposable {
 	}
 }
 
+// 基于 action 的 disposal
 /// A disposable that will run an action upon disposal.
 class ActionDisposable: Disposable {
 	var _action: Atomic<(() -> ())?>
@@ -69,7 +74,8 @@ class CompositeDisposable: Disposable {
 	init(_ disposables: Disposable[]) {
 		_disposables = Atomic(disposables)
 	}
-
+    
+    // convenience 提供了一个无参数的便利的构造器
 	/// Initializes an empty CompositeDisposable.
 	convenience init() {
 		self.init([])
@@ -83,6 +89,7 @@ class CompositeDisposable: Disposable {
 		}
 	}
 	
+    // 将给定的 disposable 添加到列表中
 	/// Adds the given disposable to the list.
 	func addDisposable(d: Disposable?) {
 		if d == nil {
@@ -103,6 +110,7 @@ class CompositeDisposable: Disposable {
 		}
 	}
 	
+    // 将给定的 disposable 从列表中移除
 	/// Removes the given disposable from the list.
 	func removeDisposable(d: Disposable?) {
 		if d == nil {
@@ -119,6 +127,7 @@ class CompositeDisposable: Disposable {
 	}
 }
 
+// 基于 "取消初始化" 的 disposal,将自动的去执行另一个 disposable 的 dispose 方法
 /// A disposable that, upon deinitialization, will automatically dispose of
 /// another disposable.
 class ScopedDisposable: Disposable {
@@ -138,6 +147,7 @@ class ScopedDisposable: Disposable {
 		innerDisposable = disposable
 	}
 	
+    // 析构函数
 	deinit {
 		dispose()
 	}
