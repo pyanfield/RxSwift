@@ -225,6 +225,7 @@ class Stream<T> {
 		}
 	}
 
+    // 扫描数据流，积累状态和映射每个值到一个新的值
 	/// Scans over the stream, accumulating a state and mapping each value to
 	/// a new value.
 	@final func scan<U>(initial: U, _ f: (U, T) -> U) -> Stream<U> {
@@ -234,6 +235,7 @@ class Stream<T> {
 		}
 	}
 
+    // 像 scan() 方法，不过返回的是包含最后一个累积状态值的数据流
 	/// Like scan(), but returns a stream of one value, which will be the final
 	/// accumulated state.
 	@final func aggregate<U>(initial: U, _ f: (U, T) -> U) -> Stream<U> {
@@ -244,6 +246,7 @@ class Stream<T> {
 			.takeLast(1)
 	}
 
+    // 合并每一个以前的值和当前值形成一个新值
 	/// Combines each previous and current value into a new value.
 	@final func combinePrevious<U>(initial: T, f: (T, T) -> U) -> Stream<U> {
 		let initialState: (T, U?) = (initial, nil)
@@ -256,6 +259,7 @@ class Stream<T> {
 		return scanned.map { (_, value) in value! }
 	}
 
+    // 忽略所有的 Next 事件
 	/// Ignores all Next events from the receiver.
 	@final func ignoreValues() -> Stream<T> {
 		return filter { _ in false }
@@ -286,11 +290,13 @@ func dematerialize<T>(stream: Stream<Event<T>>) -> Stream<T> {
 	} |> flatten
 }
 
+// 忽略当前数据流中所有的给定的值
 /// Ignores all occurrences of a value in the given stream.
 func ignore<T: Equatable>(value: T, inStream stream: Stream<T>) -> Stream<T> {
 	return stream.filter { $0 != value }
 }
 
+// 删除连续出现的相同的值，只保留第一个出现的值
 /// Deduplicates consecutive appearances of the same value into only the first
 /// occurrence.
 func nub<T: Equatable>(stream: Stream<T>) -> Stream<T> {
@@ -305,6 +311,7 @@ func nub<T: Equatable>(stream: Stream<T>) -> Stream<T> {
 	}
 }
 
+// 反转数据流中的所有的布尔值
 /// Inverts all boolean values in the stream.
 @prefix func !(stream: Stream<Bool>) -> Stream<Bool> {
 	return stream.map(!)

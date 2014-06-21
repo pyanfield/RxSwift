@@ -36,8 +36,10 @@ struct _CombineState<T> {
 	}
 }
 
+// 生产者驱动的基于 push 的数据流
 /// A producer-driven (push-based) stream of values.
 class Observable<T>: Stream<T> {
+    // 针对事件流的消费者类型
 	/// The type of a consumer for the stream's events.
 	typealias Observer = Event<T> -> ()
 	
@@ -49,6 +51,8 @@ class Observable<T>: Stream<T> {
 	let _observerQueue = dispatch_queue_create("com.github.RxSwift.Observable", DISPATCH_QUEUE_SERIAL)
 	var _observers: Box<Observer>[] = []
  
+    // 观察新的事件
+    // 返回 disposable 可以用于终止观察
 	/// Observes the stream for new events.
 	///
 	/// Returns a disposable which can be used to cease observation.
@@ -67,7 +71,9 @@ class Observable<T>: Stream<T> {
 			})
 		}
 	}
-
+    
+    // 缓存所有新事件到一个能够随时被枚举的新的序列中。
+    // 返回这个缓存序列和一个 disposable ,这个 disposable 可以用来终止进一步的缓存
 	/// Buffers all new events into a sequence which can be enumerated
 	/// on-demand.
 	///
@@ -78,6 +84,7 @@ class Observable<T>: Stream<T> {
 		return (buf, self.observe(buf.send))
 	}
 
+    // 接收者处理事件，知道 `trigger` 发送一个 Next 或者 Completed 事件
 	/// Takes events from the receiver until `trigger` sends a Next or Completed
 	/// event.
 	func takeUntil<U>(trigger: Observable<U>) -> Observable<T> {
@@ -97,6 +104,9 @@ class Observable<T>: Stream<T> {
 		}
 	}
 
+    // 接收者只有在 `sampler` 发送一个值的时候才发送它的最新的值
+    // 如果 `smapler` 比接收者发送的更频繁，那么返回的被观察者可重复这些值
+    // 在接收者发送第一个值之前，`sampler` 发送的值会被忽略
 	/// Sends the latest value from the receiver only when `sampler` sends
 	/// a value.
 	///
@@ -133,6 +143,7 @@ class Observable<T>: Stream<T> {
 		}
 	}
 
+    // 在给定的调度器上，延时传递 Next 和 Completed 事件， Error 事件永远都会立即传递
 	/// Delays the delivery of Next and Completed events by the given interval,
 	/// on the given scheduler.
 	///
@@ -152,7 +163,8 @@ class Observable<T>: Stream<T> {
 			}
 		}
 	}
-
+    
+    // 传递所有事件到给定的调度器上
 	/// Delivers all events onto the given scheduler.
 	func deliverOn(scheduler: Scheduler) -> Observable<T> {
 		return Observable { send in
@@ -163,6 +175,8 @@ class Observable<T>: Stream<T> {
 		}
 	}
 
+    // 生成一个新的被观察者，发送它的最新的值，当输入的被观察者发送值的时候，
+    // 无论是否所有的输入的被观察者都有新值发送，只有有一个被触发，这个新观察者就会发送新值
 	/// Creates an Observable which will send the latest value from both input
 	/// Observables, whenever either of them fire.
 	func combineLatestWith<U>(other: Observable<U>) -> Observable<(T, U)> {
@@ -225,6 +239,7 @@ class Observable<T>: Stream<T> {
 		}
 	}
 	
+    // 生成一个被观察者，在给定的时间间隔，给定的调度器上重复的发送当前的时间
 	/// Creates an Observable which will repeatedly send the current date at the
 	/// given interval, on the given scheduler, starting from the time of observation.
 	class func interval(interval: NSTimeInterval, onScheduler scheduler: RepeatableScheduler, withLeeway leeway: NSTimeInterval = 0) -> Observable<NSDate> {

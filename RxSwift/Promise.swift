@@ -30,7 +30,7 @@ import Foundation
 		}
 	}
 	
-    // 如果当前的 promise 还没有开始，那么现在开始这个 promise.
+    // 如果当前的 promise 还没有开始解决，那么从现在开始这个 promise.
 	/// Starts resolving the promise, if it hasn't been started already.
 	func start() {
 		self._suspended.modify { b in
@@ -48,7 +48,7 @@ import Foundation
 	func result() -> T {
 		self.start()
 		
-        // 等待该工作结束
+        // 同步线程，所以要等待该工作结束
 		// Wait for the work to finish.
 		dispatch_sync(self._queue) {}
 		

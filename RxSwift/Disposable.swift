@@ -10,6 +10,7 @@ import Foundation
 
 // class_protocol 该特性用于修饰一个协议表明该协议只能被类类型采用
 // 代表一个对象能够被废弃，通常是用于释放一些资源或者取消一些工作。
+// 比如在事件中可以用来表示“分离”，在 Timer 中表示中止，异步的时候表示取消。
 /// Represents an object that can be “disposed,” usually associated with freeing
 /// resources or canceling work.
 @class_protocol

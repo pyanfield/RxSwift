@@ -10,7 +10,7 @@ import Foundation
 
 /// Represents a serial queue of work items.
 protocol Scheduler {
-    // 将 actoin 入队到 scheduler，什么时候执行改工作，主要依赖于什么时候使用 scheduler。
+    // 将 actoin 入队到调度程序，什么时候执行改工作，主要依赖于什么时候使用调度程序
     // 返回一个 diposable 的可选类型，可以用来在其开始前进行一些取消工作。
 	/// Enqueues an action on the scheduler.
 	///
@@ -28,8 +28,10 @@ protocol Scheduler {
 	func scheduleAfter(date: NSDate, action: () -> ()) -> Disposable?
 }
 
+// 一个特殊的调度程序，支持重复动作
 /// A particular kind of scheduler that supports repeating actions.
 protocol RepeatableScheduler: Scheduler {
+    // 从给定的时间开始每隔一段时间，重复调用 action
 	/// Schedules a recurring action at the given interval, beginning at the
 	/// given start time.
 	///
@@ -40,6 +42,7 @@ protocol RepeatableScheduler: Scheduler {
 
 let currentSchedulerKey = "RxSwiftCurrentSchedulerKey"
 
+// 返回当前正在执行的调度器
 /// Returns the scheduler upon which the calling code is executing, if any.
 var currentScheduler: Scheduler? {
 	get {
@@ -47,6 +50,7 @@ var currentScheduler: Scheduler? {
 	}
 }
 
+// 将给定的调度器作为当前调度器执行 action
 /// Performs an action while setting `currentScheduler` to the given
 /// scheduler instance.
 func _asCurrentScheduler<T>(scheduler: Scheduler, action: () -> T) -> T {
@@ -73,7 +77,7 @@ struct ImmediateScheduler: Scheduler {
 	}
 }
 
-
+// 在主线程上执行所有工作的调度器
 /// A scheduler that performs all work on the main thread.
 struct MainScheduler: RepeatableScheduler {
 	let _innerScheduler = QueueScheduler(dispatch_get_main_queue())
@@ -135,8 +139,10 @@ struct QueueScheduler: Scheduler {
 
 	func _wallTimeWithDate(date: NSDate) -> dispatch_time_t {
 		var seconds = 0.0
+        // modf 返回整数和小数部分
 		let frac = modf(date.timeIntervalSince1970, &seconds)
 		
+        // NSEC_PER_SEC 纳秒，十亿分之一秒
 		let nsec: Double = frac * Double(NSEC_PER_SEC)
 		var walltime = timespec(tv_sec: CLong(seconds), tv_nsec: CLong(nsec))
 		

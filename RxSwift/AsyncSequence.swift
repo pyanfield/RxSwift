@@ -81,7 +81,7 @@ class AsyncSequence<T>: Stream<T>, Sequence {
 		self._generate = generate
 	}
     
-    // 实例化一个能够立即返回 Promise<Event<T>> 的生成器对象，代表了 stream 中的未来事件
+    // 实例化一个能够立即返回 Promise<Event<T>> (代表了 stream 中的未来事件)的生成器对象
     // 只有生成的 promise 真正的解决的时候，才会开始工作
     // 每一个 promise 可能以任意的顺序被评估， 甚至全部跳过
 	/// Instantiates a generator that will instantly return Promise<Event<T>>
